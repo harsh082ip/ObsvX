@@ -20,7 +20,7 @@ func InitDB(cfg *config.AppConfig) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	// Auto Migrate tables
+	// Auto Migrate models
 	db.AutoMigrate(&models.Order{})
 	return db, nil
 }
