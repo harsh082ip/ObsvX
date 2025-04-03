@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        button {
+            background-color: #4361ee;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #3a56d4;
+        }
+        
+        .alert {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        #orderDetails {
+            display: none;
+        }
+        
+        .detail-item {
+            margin-bottom: 10px;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .detail-value {
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Order Management</h1>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">Create New Order</div>
+            <div class="alert alert-success" id="createSuccessMessage">Order created successfully!</div>
+            <div class="alert alert-error" id="createErrorMessage"></div>
+            <form id="createOrderForm">
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Amount:</label>
+                    <input type="number" id="amount" step="0.01" required>
+                </div>
+                <button type="submit">Create Order</button>
+            </form>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">Find Order</div>
+            <div class="alert alert-error" id="findErrorMessage"></div>
+            <form id="findOrderForm">
+                <div class="form-group">
+                    <label for="orderId">Order ID:</label>
+                    <input type="text" id="orderId" required>
+                </div>
+                <button type="submit">Find Order</button>
+            </form>
+        </div>
+        
+        <div class="card" id="orderDetails">
+            <div class="card-title">Order Details</div>
+            <div class="detail-item">
+                <div class="detail-label">Order ID:</div>
+                <div class="detail-value" id="detailOrderId"></div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Status:</div>
+                <div class="detail-value" id="detailStatus"></div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Description:</div>
+                <div class="detail-value" id="detailDescription"></div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">Amount:</div>
+                <div class="detail-value" id="detailAmount"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const baseURL = 'http://34.93.162.43:8080';
+        
+        document.getElementById('createOrderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('createSuccessMessage').style.display = 'none';
+            document.getElementById('createErrorMessage').style.display = 'none';
+            const description = document.getElementById('description').value;
+            const amount = document.getElementById('amount').value;
+            try {
+                const response = await fetch(`${baseURL}/api/orders`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ description, amount: parseFloat(amount) })
+                });
+                if (!response.ok) throw new Error(`Error: ${response.status}`);
+                const data = await response.json();
+                document.getElementById('createSuccessMessage').style.display = 'block';
+                document.getElementById('createSuccessMessage').textContent = `Order created successfully! Order ID: ${data.order_id}`;
+                e.target.reset();
+            } catch (error) {
+                document.getElementById('createErrorMessage').style.display = 'block';
+                document.getElementById('createErrorMessage').textContent = `Failed to create order: ${error.message}`;
+            }
+        });
+        
+        document.getElementById('findOrderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('findErrorMessage').style.display = 'none';
+            document.getElementById('orderDetails').style.display = 'none';
+            const orderId = document.getElementById('orderId').value;
+            try {
+                const response = await fetch(`${baseURL}/api/orders/${orderId}`);
+                if (!response.ok) throw new Error(response.status === 404 ? 'Order not found' : `Error: ${response.status}`);
+                const order = await response.json();
+                document.getElementById('detailOrderId').textContent = order.order_id;
+                document.getElementById('detailStatus').textContent = order.status;
+                document.getElementById('detailDescription').textContent = order.description;
+                document.getElementById('detailAmount').textContent = `$${order.amount.toFixed(2)}`;
+                document.getElementById('orderDetails').style.display = 'block';
+            } catch (error) {
+                document.getElementById('findErrorMessage').style.display = 'block';
+                document.getElementById('findErrorMessage').textContent = `Failed to find order: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
