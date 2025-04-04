@@ -8,11 +8,14 @@ import (
 )
 
 type AppConfig struct {
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
+	DBHost       string
+	DBPort       string
+	DBUser       string
+	DBPassword   string
+	DBName       string
+	LogLevel     string
+	LogFile      string
+	LogToConsole bool
 }
 
 func LoadConfig() (*AppConfig, error) {
@@ -21,11 +24,14 @@ func LoadConfig() (*AppConfig, error) {
 	}
 
 	config := &AppConfig{
-		DBHost:     getEnv("DB_HOST", "host"),
-		DBPort:     getEnv("DB_PORT", "5000"),
-		DBUser:     getEnv("DB_USER", "admin"),
-		DBPassword: getEnv("DB_PASSWORD", "pass"),
-		DBName:     getEnv("DB_NAME", "default"),
+		DBHost:       getEnv("DB_HOST", "host"),
+		DBPort:       getEnv("DB_PORT", "5000"),
+		DBUser:       getEnv("DB_USER", "admin"),
+		DBPassword:   getEnv("DB_PASSWORD", "pass"),
+		DBName:       getEnv("DB_NAME", "default"),
+		LogLevel:     getEnv("LOG_LEVEL", "info"),
+		LogFile:      getEnv("LOG_FILE", "service_logs.log"),
+		LogToConsole: getEnvBool("LOG_TO_CONSOLE", true),
 	}
 
 	return config, nil
@@ -34,6 +40,13 @@ func LoadConfig() (*AppConfig, error) {
 func getEnv(key, fallback string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value
+	}
+	return fallback
+}
+
+func getEnvBool(key string, fallback bool) bool {
+	if value, exists := os.LookupEnv(key); exists {
+		return value == "true" || value == "1" || value == "yes"
 	}
 	return fallback
 }

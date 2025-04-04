@@ -5,6 +5,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/harsh082ip/ObsvX/internal/log"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -69,6 +70,7 @@ var (
 
 // InitMetrics registers metrics with the custom registry
 func InitMetrics() {
+	logger := log.InitLogger("metrics")
 
 	Registry.MustRegister(
 		RequestCount,
@@ -83,19 +85,22 @@ func InitMetrics() {
 		MemoryUsage,
 	)
 
+	logger.LogInfoMessage().Msg("Metrics registered successfully")
+
 	// Start a goroutine to periodically update CPU and memory metrics
 	go updateResourceMetrics()
 }
 
-// updateResourceMetrics periodically updates CPU and memory metrics
 func updateResourceMetrics() {
+	logger := log.InitLogger("metrics")
 	var memStats runtime.MemStats
+
+	logger.LogDebugMessage().Msg("Starting resource metrics collection")
+
 	for {
 		runtime.ReadMemStats(&memStats)
 		MemoryUsage.Set(float64(memStats.Alloc))
 
-		// Note: Getting accurate CPU usage requires more complex implementation
-		// This is a placeholder - we might want to use a dedicated library for this
 		CpuUsage.Set(float64(runtime.NumGoroutine()) / 100)
 
 		// Update every 5 seconds

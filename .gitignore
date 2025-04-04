@@ -1,3 +1,6 @@
 .qodo
 *.env
 main
+*.log
+deploy.sh
+obsvx
